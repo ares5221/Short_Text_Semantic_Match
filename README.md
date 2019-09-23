@@ -17,3 +17,5 @@
 以前做文本相似度比较，通过字符串来进行统计比较，典型的如WMD，还有统计词频信息TF-IDF信息，然后将文本表示为一个词频向量，然后比较向量相似度，还有一些其他DL的方法如下介绍。
 
 <https://blog.csdn.net/qq_33858719/article/details/93190383>
+
+<https://blog.csdn.net/rensihui/article/details/82416085>
