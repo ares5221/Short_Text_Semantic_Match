@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding:utf-8 _*_
+import csv
+
 import tensorflow as tf
 import numpy as np
 from keras.utils import np_utils
@@ -11,22 +13,31 @@ from keras.utils import np_utils
 
 X = np.load('train_data.npy')
 Y = np.load('train_label.npy')
-print('导入分类数据成功', X.shape, Y.shape)
+test_data = np.load("test_data3.npy", allow_pickle=True)
+test_label = np.load("test_label3.npy", allow_pickle=True)
+
+print('导入train数据成功', X.shape, Y.shape)
+print('导入test数据成功', test_data.shape, test_label.shape)
 
 Y_label = np_utils.to_categorical(Y, 2)
+t_lable = np_utils.to_categorical(test_label,2)
+## use self test data 4w
 X_train, X_test = X[0:160000], X[160000:]
 Y_train, Y_test = Y_label[0:160000], Y_label[160000:]
+## use qa test data 100
+# X_train, X_test = X[0:160000], test_data
+# Y_train, Y_test = Y_label[0:160000], t_lable
 
 tf.reset_default_graph()
 # Parameters
 learning_rate = 0.001
-training_epochs = 10
+training_epochs = 200
 batch_size = 100
-display_step = 100
+display_step = 10
 
 # Network Parameters
 n_input = 768*2  # Number of feature
-n_hidden_1 = 64  # 1st layer number of features
+n_hidden_1 = 100  # 1st layer number of features
 n_classes = 2  # Number of classes to predict
 
 x = tf.placeholder("float", [None, n_input])
@@ -87,4 +98,18 @@ with tf.Session() as sess:
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     print("Accuracy:", accuracy.eval({x: X_test, y: Y_test}))  # Accuracy: 0.9905
     # global result
-    # result = tf.argmax(pred, 1).eval({x: X_test, y: Y_test})
+    result = tf.argmax(pred, 1).eval({x: X_test, y: Y_test})
+    print(result)
+    with open('03bert_lstm_mlp_predict_tf.csv', 'w', newline='', encoding='utf-8') as csvwriter:
+        spamwriter = csv.writer(csvwriter, delimiter=' ')
+        for pre_val in result:
+            spamwriter.writerow([pre_val])
+    count =0
+    for res in range(len(result)):
+        if res <50:
+            if result[res] ==1:
+                count+=1
+        else:
+            if result[res] ==0:
+                count +=1
+    print(count)

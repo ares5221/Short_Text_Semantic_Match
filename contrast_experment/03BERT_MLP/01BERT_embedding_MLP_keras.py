@@ -41,7 +41,7 @@ def build_model(train_data, train_label, test_data, test_label):
     print('step3: start build MLP model...')
     data_size = 200000
     max_len = 768*2  # BERT Embedding length
-    epochs_num = 500
+    epochs_num = 400
     batch_size_num = 100
     #set train data
     train_data = keras.preprocessing.sequence.pad_sequences(train_data,
@@ -57,25 +57,26 @@ def build_model(train_data, train_label, test_data, test_label):
     test_label = np_utils.to_categorical(test_label, 2)
 
     model = keras.Sequential()
-    model.add(keras.layers.Dense(2, activation=tf.nn.softmax, input_shape=(768*2,)))
+    model.add(keras.layers.Dense(100, activation=tf.nn.sigmoid, input_shape=(768*2,)))
+    model.add(keras.layers.Dense(2, activation=tf.nn.sigmoid))
     model.summary()
     # 损失函数和优化
     model.compile(optimizer=tf.train.AdamOptimizer(),
-                  loss='categorical_crossentropy',
+                  loss='binary_crossentropy',
                   metrics=['accuracy'])
 
-    train_test_split_num = int(data_size * 1)
+    train_test_split_num = int(data_size * 0.8)
     train_val_split_num = int(train_test_split_num * 0.8)
     x_val = train_data[train_val_split_num:train_test_split_num]
     partial_x_train = train_data[0:train_val_split_num]
     y_val = train_label[train_val_split_num:train_test_split_num]
     partial_y_train = train_label[0:train_val_split_num]
     #使用20w构造数据中的一部分4w数据作为test数据
-    # test_data = train_data[train_test_split_num:]
-    # test_labels = train_label[train_test_split_num:]
+    test_data = train_data[train_test_split_num:]
+    test_labels = train_label[train_test_split_num:]
     # 使用人工构造的论坛问答数据中的100条数据作为test数据 理论上效果会比val_acc差
-    test_data = test_data
-    test_labels = test_label
+    # test_data = test_data
+    # test_labels = test_label
 
     history = model.fit(partial_x_train,
                         partial_y_train,
@@ -93,11 +94,20 @@ def build_model(train_data, train_label, test_data, test_label):
     # predict = np.argmax(predictions, axis=1)
     predictions = model.predict_classes(test_data)
     print(predictions)
-    with open('03bert_lstm_mlp_predict.csv', 'w', newline='', encoding='utf-8') as csvwriter:
+    with open('03bert_lstm_mlp_predict_keras.csv', 'w', newline='', encoding='utf-8') as csvwriter:
         spamwriter = csv.writer(csvwriter, delimiter=' ')
         for pre_val in predictions:
             spamwriter.writerow([pre_val])
 
+    count = 0
+    for res in range(len(predictions)):
+        if res < 50:
+            if predictions[res] == 1:
+                count += 1
+        else:
+            if predictions[res] == 0:
+                count += 1
+    print(count)
     # print('step6: 开始绘图...')
     # history_dict = history.history
     # history_dict.keys()
